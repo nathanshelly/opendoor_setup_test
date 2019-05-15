@@ -1,0 +1,117 @@
+#! /usr/bin/env bash
+
+set -e
+
+add_to_bashrc() {
+  [ -f "$HOME/.bashrc" ] && grep -q 'asdf' "$HOME/.bashrc" && {
+    echo "asdf already added to $HOME/.bashrc"
+    return
+  }
+
+  echo "writing to $HOME/.bashrc..."
+  printf "${BASH_ZSH_CONFIG[*]}" >> "$HOME/.bashrc"
+  source "$HOME/.bashrc" && echo '✅'
+}
+
+add_to_zshrc() {
+  [ -f "$HOME/.zshrc" ] && grep -q 'asdf' "$HOME/.zshrc" && {
+    echo "asdf already added to $HOME/.zshrc"
+    return
+  }
+
+  BASH_ZSH_CONFIG+=('autoload -Uz compinit && compinit')
+
+  echo "writing to $HOME/.zshrc..."
+  printf "${BASH_ZSH_CONFIG[*]}" >> "$HOME/.zshrc"
+  # source "$HOME/.zshrc" && echo '✅'
+}
+
+add_to_fish_config() {
+  [ -f "$HOME/.config/fish/config.fish" ] \
+  && grep -q 'asdf' "$HOME/.config/fish/config.fish" && {
+    echo "asdf already added to $HOME/.config/fish/config.fish"
+    return
+  }
+
+  echo "writing to $HOME/.config/fish/config.fish..."
+
+  echo 'source ~/.asdf/asdf.fish' >> "$HOME/.config/fish/config.fish"
+  mkdir -p "$HOME/.config/fish/completions"
+  cp "$HOME/.asdf/completions/asdf.fish" "$HOME/.config/fish/completions"
+
+  # source "$HOME/.config/fish/config.fish" && echo "✅"
+}
+
+add_to_config() {
+  local BASH_ZSH_CONFIG=(
+    '# added by https://github.com/opendoor-labs/scripts/tree/master/setup/install_asdf'
+    "source $HOME/.asdf/asdf.sh"
+    "source $HOME/.asdf/completions/asdf.bash"
+  )
+  IFS=$'\n'
+
+  case "$SHELL" in
+    *bash*)
+      add_to_bashrc
+      ;;
+    *zsh*)
+      add_to_zshrc
+      ;;
+    *fish*)
+      add_to_fish_config
+      ;;
+  esac
+
+  source "$HOME/.asdf/asdf.sh"
+  source "$HOME/.asdf/completions/asdf.bash"
+}
+
+add_plugins() {
+  echo "setting up asdf plugins and their requirements..."
+  asdf plugin-list | grep -q ruby   || asdf plugin-add ruby
+  asdf plugin-list | grep -q nodejs || asdf plugin-add nodejs
+  asdf plugin-list | grep -q python || asdf plugin-add python
+
+  bash "$HOME/.asdf/plugins/nodejs/bin/import-release-team-keyring"
+  echo "✅"
+}
+
+print_asdf_art() {
+  local GREEN='\033[92m'
+  local NO_COLOR='\033[0m'
+
+  echo ''
+  echo -ne "${GREEN}"
+  echo '                _  __ '
+  echo '               | |/ _|'
+  echo '   __ _ ___  __| | |_ '
+  echo '  / _` / __|/ _` |  _|'
+  echo ' | (_| \__ \ (_| | |  '
+  echo '  \__,_|___/\__,_|_|  '
+  echo ''
+  echo 'asdf is installed!'
+  echo 'open a new terminal window or source your configuration to load asdf'
+  echo -ne "${NO_COLOR}"
+}
+
+install_asdf() {
+  command -v asdf > /dev/null 2>&1 && {
+    echo 'asdf already installed!'
+    return
+  }
+
+  [ -d "$HOME/.asdf" ] && {
+    echo 'asdf already installed, not sourced'
+    return
+  }
+
+  echo "Installing asdf..."
+  git clone https://github.com/asdf-vm/asdf.git "$HOME/.asdf" --branch v0.7.1 \
+    && echo '✅'
+}
+
+# https://asdf-vm.com/#/core-manage-asdf-vm
+install_asdf
+add_to_config
+add_plugins
+print_asdf_art
