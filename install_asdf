@@ -8,6 +8,11 @@ add_to_bashrc() {
     return
   }
 
+  [ -f "$HOME/.bash_profile" ] && grep -q 'bashrc' "$HOME/.bash_profile" || {
+    echo "adding source '$HOME/.bashrc' to '$HOME/.bash_profile'"
+    echo 'source "$HOME/.bashrc"' >> "$HOME/.bash_profile"
+  }
+
   echo "writing to $HOME/.bashrc..."
   printf "${BASH_ZSH_CONFIG[*]}" >> "$HOME/.bashrc"
   source "$HOME/.bashrc" && echo '✅'
@@ -35,7 +40,7 @@ add_to_fish_config() {
 
   echo "writing to $HOME/.config/fish/config.fish..."
 
-  echo 'source ~/.asdf/asdf.fish' >> "$HOME/.config/fish/config.fish"
+  echo 'source "$HOME/.asdf/asdf.fish"' >> "$HOME/.config/fish/config.fish"
   mkdir -p "$HOME/.config/fish/completions"
   cp "$HOME/.asdf/completions/asdf.fish" "$HOME/.config/fish/completions"
 
@@ -45,8 +50,8 @@ add_to_fish_config() {
 add_to_config() {
   local BASH_ZSH_CONFIG=(
     '# added by https://github.com/opendoor-labs/scripts/tree/master/setup/install_asdf'
-    "source $HOME/.asdf/asdf.sh"
-    "source $HOME/.asdf/completions/asdf.bash"
+    'source "$HOME/.asdf/asdf.sh"'
+    'source "$HOME/.asdf/completions/asdf.bash"'
   )
   IFS=$'\n'
 
