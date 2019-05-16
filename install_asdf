@@ -3,14 +3,14 @@
 set -e
 
 add_to_bashrc() {
-  [ -f "$HOME/.bashrc" ] && grep -q 'asdf' "$HOME/.bashrc" && {
-    echo "asdf already added to $HOME/.bashrc"
-    return
-  }
-
   [ -f "$HOME/.bash_profile" ] && grep -q 'bashrc' "$HOME/.bash_profile" || {
     echo "adding source '$HOME/.bashrc' to '$HOME/.bash_profile'"
     echo 'source "$HOME/.bashrc"' >> "$HOME/.bash_profile"
+  }
+
+  [ -f "$HOME/.bashrc" ] && grep -q 'asdf' "$HOME/.bashrc" && {
+    echo "asdf already added to $HOME/.bashrc"
+    return
   }
 
   echo "writing to $HOME/.bashrc..."
